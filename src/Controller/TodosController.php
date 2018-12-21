@@ -2,33 +2,57 @@
 
 namespace App\Controller;
 
-use Doctrine\DBAL\Connection;
+use App\Entity\Todo;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 
 class TodosController extends AbstractController
 {
-    public function showTodos(Request $request, Connection $connection)
+    public function showTodos(Request $request)
     {
         if ((int) $request->query->get('all') == 1) {
-            $todos = $connection->fetchAll('SELECT t.* FROM todos t');
+            $todos = $this->getDoctrine()->
+                    getRepository(Todo::class)->
+                    findAll();
         } else {
-            $todos = $connection->fetchAll('SELECT t.* FROM todos t WHERE completed = 0');
+            $todos = $this->getDoctrine()->
+                    getRepository(Todo::class)->
+                    findBy(['completed' => 0]);
         }
 
         return $this->render('showTodos.html.twig', ['todos' => $todos]);
     }
 
-    public function completeTodo(Request $request, Connection $connection)
+    public function completeTodo(Request $request)
     {
-        $connection->executeQuery('UPDATE todos SET completed = 1 WHERE id = ' . ((int) $request->query->get('id')));
+        $id = (int) $request->query->get('id');
 
+        $entityManager = $this->getDoctrine()->getManager();
+        $todo = $entityManager->getRepository(Todo::class)->find($id);
+
+        if (!$todo) {
+            throw $this->createNotFoundException('No todo found for id ' . $id);
+        }
+
+        $todo->setCompleted(1);
+        $entityManager->flush();
+        
         return $this->redirect('/');
     }
 
-    public function uncompleteTodo(Request $request, Connection $connection)
+    public function uncompleteTodo(Request $request)
     {
-        $connection->executeQuery('UPDATE todos SET completed = 0 WHERE id = ' . ((int) $request->query->get('id')));
+        $id = (int) $request->query->get('id');
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $todo = $entityManager->getRepository(Todo::class)->find($id);
+
+        if (!$todo) {
+            throw $this->createNotFoundException('No todo found for id ' . $id);
+        }
+
+        $todo->setCompleted(0);
+        $entityManager->flush();
 
         return $this->redirect('/');
     }
