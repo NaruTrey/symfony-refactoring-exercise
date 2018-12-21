@@ -35,5 +35,34 @@ class Todos
      */
     private $completed;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getText(): ?string
+    {
+        return $this->text;
+    }
+
+    public function setText(?string $text): self
+    {
+        $this->text = $text;
+
+        return $this;
+    }
+
+    public function getCompleted(): ?int
+    {
+        return $this->completed;
+    }
+
+    public function setCompleted(?int $completed): self
+    {
+        $this->completed = $completed;
+
+        return $this;
+    }
+
 
 }
